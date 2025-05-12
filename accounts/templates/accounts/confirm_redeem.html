@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ödülü Al</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 50px;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            display: inline-block;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background-color: #3b5d20;
+            color: white;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Ödülü Almak İstiyor Musun?</h2>
+        <p><strong>{{ reward.name }}</strong> ödülü için <strong>{{ reward.points_required }}</strong> puan harcayacaksın.</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn">Evet, Al!</button>
+            <a href="{% url 'reward_list' %}" class="btn">Vazgeç</a>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Giriş Yap</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        .login-container h2 {
+            text-align: center;
+            color: #3b5d20;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .btn {
+            background-color: #3b5d20;
+            color: white;
+            padding: 10px;
+            border: none;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background-color: #2f4d17;
+        }
+        .register-link {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: #3b5d20;
+            text-decoration: none;
+        }
+        .register-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <h2>Giriş Yap</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="username">Kullanıcı Adı</label>
+            {{ form.username }}
+        </div>
+        <div class="form-group">
+            <label for="password">Şifre</label>
+            {{ form.password }}
+        </div>
+        <button type="submit" class="btn">Giriş Yap</button>
+    </form>
+
+    <a href="{% url 'register' %}" class="register-link">Hesabın yok mu? Kayıt Ol</a>
+</div>
+
+</body>
+</html>

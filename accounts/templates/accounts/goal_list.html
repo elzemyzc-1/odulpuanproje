@@ -1,0 +1,101 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Hedeflerim</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .navbar {
+            background-color: #3b5d20;
+            padding: 10px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+        }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h2, h3 {
+            color: #3b5d20;
+        }
+        .btn {
+            background-color: #3b5d20;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .btn-danger {
+            background-color: #a94442;
+        }
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        li {
+            margin-bottom: 15px;
+        }
+        form {
+            display: inline;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div>
+            <a href="{% url 'home' %}">Ana Sayfa</a>
+            <a href="{% url 'goal_list' %}">Hedeflerim</a>
+            <a href="{% url 'add_goal' %}">Hedef Ekle</a>
+            <a href="{% url 'reward_list' %}">Ödül Al</a>
+            <a href="{% url 'task_pool' %}">Görevler</a>
+            <a href="{% url 'profile' %}">Profil</a>
+        </div>
+        <div>
+            <span class="btn">Toplam Puan: {{ user.profile.points }}</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Haftalık Hedeflerim</h2>
+
+        {% for day, goals in grouped_goals %}
+            <h3>📅 {{ day }}</h3>
+            <ul>
+                {% for goal in goals %}
+                    <li>
+                        <strong>{{ goal.title }}</strong> – {{ goal.points }} Puan
+
+                        {% if goal.id in completed_today %}
+                            ✅ <span style="color: green;">Bugün Tamamlandı</span>
+                        {% else %}
+                            <a href="{% url 'complete_goal' goal.id %}" class="btn">Bugün Tamamla</a>
+                        {% endif %}
+
+                        <form action="{% url 'delete_goal' goal.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">Sil</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    </div>
+</body>
+</html>

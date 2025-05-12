@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Görevden Hedef Oluştur</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background-color: #3b5d20;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            border: none;
+            margin-top: 10px;
+        }
+        label { font-weight: bold; margin-top: 10px; display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Görevden Hedef Oluştur</h2>
+        <p><strong>{{ task.title }}</strong> - {{ task.points }} Puan</p>
+        <p>{{ task.description }}</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <label>Hedef Günleri:</label>
+            {{ form.day_of_week }}
+            <button type="submit" class="btn">Kaydet</button>
+        </form>
+
+        <a href="{% url 'task_pool' %}" class="btn">Geri Dön</a>
+    </div>
+</body>
+</html>

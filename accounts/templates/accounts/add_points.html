@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puan Kazan</title>
+</head>
+<body>
+    <h2>Puan Kazan</h2>
+    <p>Bu butona tıklayarak 10 puan kazanabilirsin.</p>
+    
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Puan Kazan</button>
+    </form>
+
+    <br>
+    <a href="{% url 'profile' %}">Profil Sayfasına Geri Dön</a>
+</body>
+</html>

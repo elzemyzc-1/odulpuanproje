@@ -1,0 +1,6 @@
+<h3>“{{ goal.title }}” adlı hedefi silmek istediğinize emin misiniz?</h3>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Evet, Sil</button>
+    <a href="{% url 'goal_list' %}">Vazgeç</a>
+</form>

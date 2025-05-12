@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ödüller</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .navbar {
+            background-color: #3b5d20;
+            padding: 10px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+        }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background-color: #3b5d20;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .message {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        h2 {
+            color: #3b5d20;
+        }
+        li {
+            margin-bottom: 25px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div>
+            <a href="{% url 'home' %}">Ana Sayfa</a>
+            <a href="{% url 'goal_list' %}">Hedeflerim</a>
+            <a href="{% url 'add_goal' %}">Hedef Ekle</a>
+            <a href="{% url 'reward_list' %}">Ödül Al</a>
+            <a href="{% url 'task_pool' %}">Görevler</a>
+            <a href="{% url 'profile' %}">Profil</a>
+        </div>
+        <div>
+            <span class="btn">Toplam Puan: {{ user.profile.points }}</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Ödüller</h2>
+
+        <!-- Başarı ve Hata Mesajları -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message {% if message.tags == 'success' %}success{% else %}error{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <ul>
+            {% for reward in rewards %}
+                <li>
+                    <strong>{{ reward.name }}</strong> - {{ reward.points_required }} Puan<br>
+                    {{ reward.description }}<br>
+                    <a href="{% url 'redeem_reward' reward.id %}" class="btn">Ödülü Al</a>
+                </li>
+            {% empty %}
+                <p>Henüz ödül bulunmamaktadır.</p>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

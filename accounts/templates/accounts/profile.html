@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Profil Sayfası</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .navbar {
+            background-color: #3b5d20;
+            padding: 10px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+        }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background-color: #3b5d20;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        h2 {
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #e8f5e9;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div>
+            <a href="{% url 'home' %}">Ana Sayfa</a>
+            <a href="{% url 'profile' %}">Profil</a>
+            <a href="{% url 'edit_profile' %}">Profil Düzenle</a> 
+            <a href="{% url 'add_goal' %}">Hedef Ekle</a>
+            <a href="{% url 'goal_list' %}">Hedeflerim</a>
+            <a href="{% url 'reward_list' %}">Ödül Al</a>
+            <a href="{% url 'task_pool' %}">Görevler</a>
+        </div>
+        <div>
+            <span class="btn">Toplam Puan: {{ user.profile.points }}</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Hoş Geldin, {{ user.username }}!</h2>
+        <p>Haftalık gelişimini aşağıda görebilirsin:</p>
+
+        <!-- GRAFİK -->
+        <canvas id="progressChart" width="400" height="200"></canvas>
+
+        <!-- TABLO -->
+        <h3>Hedef Özeti</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Hedef</th>
+                    <th>Başlangıç</th>
+                    <th>Bitiş</th>
+                    <th>Tamamlanma (%)</th>
+                    <th>Durum</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for goal in goals %}
+                <tr>
+                    <td>{{ goal.title }}</td>
+                    <td>{{ goal.start_date }}</td>
+                    <td>{{ goal.end_date }}</td>
+                    <td>{{ goal.progress }}%</td>
+                    <td>
+                        {% if goal.completed %}
+                            Tamamlandı
+                        {% else %}
+                            Devam Ediyor
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Chart.js script -->
+    <!-- Verileri güvenli şekilde JSON olarak göm -->
+{{ chart_labels|json_script:"labels-data" }}
+{{ chart_data|json_script:"progress-data" }}
+
+<script>
+    const labels = JSON.parse(document.getElementById('labels-data').textContent);
+    const data = JSON.parse(document.getElementById('progress-data').textContent);
+
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    const progressChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Tamamlanan Görev Sayısı',
+                data: data,
+                backgroundColor: 'rgba(59, 93, 32, 0.6)'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+</body>
+</html>

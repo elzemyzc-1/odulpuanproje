@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Profil Düzenle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .navbar {
+            background-color: #3b5d20;
+            padding: 10px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+        }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background-color: #3b5d20;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        h2 {
+            color: #3b5d20;
+            text-align: center;
+        }
+        form > div {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div>
+            <a href="{% url 'goal_list' %}">Hedeflerim</a>
+            <a href="{% url 'add_goal' %}">Hedef Ekle</a>
+            <a href="{% url 'reward_list' %}">Ödül Al</a>
+            <a href="{% url 'task_pool' %}">Görevler</a>
+            <a href="{% url 'profile' %}">Profil</a>
+        </div>
+        <div>
+            <span class="btn">Toplam Puan: {{ user.profile.points }}</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Profilini Düzenle</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div>
+                {{ form.first_name.label_tag }}
+                {{ form.first_name }}
+            </div>
+            <div>
+                {{ form.last_name.label_tag }}
+                {{ form.last_name }}
+            </div>
+            <div>
+                {{ form.email.label_tag }}
+                {{ form.email }}
+            </div>
+            <h3>Şifre Değiştir</h3>
+            <div>
+                {{ password_form.old_password.label_tag }}
+                {{ password_form.old_password }}
+            </div>
+            <div>
+                {{ password_form.new_password1.label_tag }}
+                {{ password_form.new_password1 }}
+            </div>
+            <div>
+                {{ password_form.new_password2.label_tag }}
+                {{ password_form.new_password2 }}
+            </div>
+            <button type="submit" class="btn">Kaydet</button>
+        </form>
+    </div>
+</body>
+</html>

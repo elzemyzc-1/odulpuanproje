@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Görev Havuzu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .navbar {
+            background-color: #3b5d20;
+            padding: 10px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+        }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background-color: #3b5d20;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        h2 {
+            color: #3b5d20;
+        }
+        li {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div>
+            <a href="{% url 'home' %}">Ana Sayfa</a>
+            <a href="{% url 'goal_list' %}">Hedeflerim</a>
+            <a href="{% url 'add_goal' %}">Hedef Ekle</a>
+            <a href="{% url 'reward_list' %}">Ödül Al</a>
+            <a href="{% url 'task_pool' %}">Görevler</a>
+            <a href="{% url 'profile' %}">Profil</a>
+        </div>
+        <div>
+            <span class="btn">Toplam Puan: {{ user.profile.points }}</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Görev Havuzu</h2>
+        <ul>
+            {% for task in tasks %}
+                <li>
+                    <strong>{{ task.title }}</strong> - {{ task.points }} Puan<br>
+                    {{ task.description }}<br>
+                    <a href="{% url 'add_task_as_goal' task.id %}" class="btn">+ Hedef Listeme Ekle</a>
+                </li>
+            {% empty %}
+                <p>Henüz sistemde görev bulunmamaktadır.</p>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>
