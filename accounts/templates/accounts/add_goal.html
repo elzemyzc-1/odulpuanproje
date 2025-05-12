@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <title>Hedef Ekle</title>
@@ -9,54 +10,75 @@
             margin: 0;
             background-color: #f4f4f4;
         }
+
         .navbar {
+            padding: 0px 10px;
             background-color: #3b5d20;
-            padding: 10px;
             color: white;
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            height: 58px;
+
+            span {
+                margin-top: 0;
+            }
         }
+
         .navbar a {
             color: white;
             text-decoration: none;
             margin: 0 15px;
         }
+
         .container {
             max-width: 600px;
             margin: 50px auto;
             background: white;
             padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+
         .btn {
-            background-color: #3b5d20;
+            background-color: #2f4f2f;
             color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 6px 12px;
+            border-radius: 6px;
             text-decoration: none;
-            display: inline-block;
-            margin-top: 10px;
+            font-size: 14px;
             border: none;
             cursor: pointer;
         }
+
         form {
             display: flex;
             flex-direction: column;
         }
-        input, textarea, select {
+
+        input,
+        textarea,
+        select {
             padding: 8px;
             margin-top: 10px;
             margin-bottom: 20px;
             border-radius: 5px;
             border: 1px solid #ccc;
         }
+
         label {
             font-weight: bold;
             margin-top: 10px;
         }
+
+        .btn-back {
+            margin-top: 8px;
+            display: inline-block;
+        }
     </style>
 </head>
+
 <body>
     <div class="navbar">
         <div>
@@ -67,39 +89,37 @@
             <a href="{% url 'task_pool' %}">Görevler</a>
             <a href="{% url 'profile' %}">Profil</a>
         </div>
-        <div>
-            <span class="btn">Toplam Puan: {{ user.profile.points }}</span>
-        </div>
+        <span class="btn">Toplam Puan: {{ user.profile.points }}</span>
     </div>
 
     <div class="container">
         <h2>Yeni Hedef Ekle</h2>
         <form method="post">
             {% csrf_token %}
-            
+
             <label for="{{ form.title.id_for_label }}">Başlık:</label>
             {{ form.title }}
-        
+
             <label for="{{ form.description.id_for_label }}">Açıklama:</label>
             {{ form.description }}
-        
+
             <label for="{{ form.points.id_for_label }}">Puan:</label>
             {{ form.points }}
-        
+
             <label>Hedef Günleri:</label>
             <button type="button" class="btn" onclick="toggleAllDays(this)">Tüm Günleri Seç</button>
             {{ form.day_of_week }}
-        
+
             <button type="submit" class="btn">Kaydet</button>
         </form>
-        
-        <a href="{% url 'goal_list' %}" class="btn">Geri Dön</a>
+
+        <a href="{% url 'goal_list' %}" class="btn btn-back">Geri Dön</a>
     </div>
     <script>
         function toggleAllDays(button) {
             const checkboxes = document.querySelectorAll('input[name="day_of_week"]');
             const allChecked = Array.from(checkboxes).every(el => el.checked);
-    
+
             if (allChecked) {
                 checkboxes.forEach(el => el.checked = false);
                 button.textContent = "Tüm Günleri Seç";
@@ -108,6 +128,7 @@
                 button.textContent = "Tüm Günleri Kaldır";
             }
         }
-    </script>      
-</body> 
+    </script>
+</body>
+
 </html>

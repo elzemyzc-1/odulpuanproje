@@ -1,65 +1,125 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <title>Ödüller</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            background-color: #f4f4f4;
+            background-color: #f9f9f9;
         }
+
         .navbar {
+            padding: 0px 10px;
             background-color: #3b5d20;
-            padding: 10px;
             color: white;
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            height: 58px;
         }
+
         .navbar a {
             color: white;
             text-decoration: none;
             margin: 0 15px;
+            font-weight: 500;
         }
+
         .container {
-            max-width: 800px;
-            margin: 50px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
         }
-        .btn {
-            background-color: #3b5d20;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 5px;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 10px;
-        }
-        .message {
-            margin-bottom: 20px;
-            padding: 10px;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-        .message.success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .message.error {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
+
         h2 {
-            color: #3b5d20;
-        }
-        li {
+            color: #2f4f2f;
             margin-bottom: 25px;
+        }
+
+        .message {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background-color: #e6f4ea;
+            color: #20733e;
+        }
+
+        .message.error {
+            background-color: #fdecea;
+            color: #b30000;
+        }
+
+        .rewards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .reward-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .reward-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .reward-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2f4f2f;
+        }
+
+        .reward-description {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 12px;
+        }
+
+        .points {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            background-color: #2f4f2f;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background-color: #3e6a3e;
+        }
+
+        .no-rewards {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-left: 4px solid #ffeeba;
+            border-radius: 6px;
         }
     </style>
 </head>
+
 <body>
     <div class="navbar">
         <div>
@@ -76,28 +136,31 @@
     </div>
 
     <div class="container">
-        <h2>Ödüller</h2>
+        <h2>🎁 Ödüller</h2>
 
-        <!-- Başarı ve Hata Mesajları -->
         {% if messages %}
-            {% for message in messages %}
-                <div class="message {% if message.tags == 'success' %}success{% else %}error{% endif %}">
-                    {{ message }}
-                </div>
-            {% endfor %}
+        {% for message in messages %}
+        <div class="message {% if message.tags == 'success' %}success{% else %}error{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
         {% endif %}
 
-        <ul>
+        {% if rewards %}
+        <div class="rewards-grid">
             {% for reward in rewards %}
-                <li>
-                    <strong>{{ reward.name }}</strong> - {{ reward.points_required }} Puan<br>
-                    {{ reward.description }}<br>
-                    <a href="{% url 'redeem_reward' reward.id %}" class="btn">Ödülü Al</a>
-                </li>
-            {% empty %}
-                <p>Henüz ödül bulunmamaktadır.</p>
+            <div class="reward-card">
+                <div class="reward-title">{{ reward.name }}</div>
+                <div class="points">{{ reward.points_required }} Puan Gerekli</div>
+                <div class="reward-description">{{ reward.description }}</div>
+                <a href="{% url 'redeem_reward' reward.id %}" class="btn">Ödülü Al</a>
+            </div>
             {% endfor %}
-        </ul>
+        </div>
+        {% else %}
+        <div class="no-rewards">Henüz ödül bulunmamaktadır.</div>
+        {% endif %}
     </div>
 </body>
+
 </html>

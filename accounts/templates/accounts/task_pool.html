@@ -1,51 +1,109 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <title>Görev Havuzu</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            background-color: #f4f4f4;
+            background-color: #f9f9f9;
         }
+
         .navbar {
+            padding: 0px 10px;
             background-color: #3b5d20;
-            padding: 10px;
+            height: 58px;
             color: white;
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+
         .navbar a {
             color: white;
             text-decoration: none;
             margin: 0 15px;
+            font-weight: 500;
         }
+
         .container {
-            max-width: 800px;
-            margin: 50px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
         }
+
+        h2 {
+            color: #2f4f2f;
+            margin-bottom: 25px;
+        }
+
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .task-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .task-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .task-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2f4f2f;
+        }
+
+        .task-description {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 12px;
+        }
+
+        .points {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
         .btn {
-            background-color: #3b5d20;
+            background-color: #2f4f2f;
             color: white;
-            padding: 8px 16px;
-            border-radius: 5px;
+            padding: 8px 14px;
+            border-radius: 6px;
             text-decoration: none;
-            margin-top: 10px;
+            font-size: 14px;
             display: inline-block;
         }
-        h2 {
-            color: #3b5d20;
+
+        .btn:hover {
+            background-color: #3e6a3e;
         }
-        li {
-            margin-bottom: 20px;
+
+        .no-tasks {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-left: 4px solid #ffeeba;
+            border-radius: 6px;
+            font-size: 14px;
         }
     </style>
 </head>
+
 <body>
     <div class="navbar">
         <div>
@@ -62,18 +120,23 @@
     </div>
 
     <div class="container">
-        <h2>Görev Havuzu</h2>
-        <ul>
+        <h2>🗂️ Görev Havuzu</h2>
+
+        {% if tasks %}
+        <div class="tasks-grid">
             {% for task in tasks %}
-                <li>
-                    <strong>{{ task.title }}</strong> - {{ task.points }} Puan<br>
-                    {{ task.description }}<br>
-                    <a href="{% url 'add_task_as_goal' task.id %}" class="btn">+ Hedef Listeme Ekle</a>
-                </li>
-            {% empty %}
-                <p>Henüz sistemde görev bulunmamaktadır.</p>
+            <div class="task-card">
+                <div class="task-title">{{ task.title }}</div>
+                <div class="points">{{ task.points }} Puan</div>
+                <div class="task-description">{{ task.description }}</div>
+                <a href="{% url 'add_task_as_goal' task.id %}" class="btn">+ Hedef Listeme Ekle</a>
+            </div>
             {% endfor %}
-        </ul>
+        </div>
+        {% else %}
+        <div class="no-tasks">Henüz sistemde görev bulunmamaktadır.</div>
+        {% endif %}
     </div>
 </body>
+
 </html>

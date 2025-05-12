@@ -26,18 +26,13 @@ class GoalForm(forms.ModelForm):
 
     class Meta:
         model = Goal
-        fields = ['title', 'description', 'points', 'completed', 'day_of_week']
-
-    def clean_day_of_week(self):
-        days = self.cleaned_data['day_of_week']
-        return ",".join(days)
+        fields = ['title', 'description', 'points', 'completed']
 
 
 class CustomLoginView(LoginView):
     template_name = 'accounts/login.html'
 
 
-@login_required
 def register(request):
     if request.method == "POST":
         form = UserCreationForm(request.POST)
@@ -52,7 +47,89 @@ def register(request):
 
 @login_required
 def profile(request):
-    return render(request, "accounts/profile.html")
+    user = request.user
+    
+    # Handle week navigation
+    try:
+        week_offset = int(request.GET.get('week_offset', 0))
+    except ValueError:
+        week_offset = 0
+    
+    # Calculate current date adjusted by week offset
+    today = timezone.now().date()
+    current_date = today + timedelta(days=7 * week_offset)
+    
+    # Find the most recent Monday (to start week on Monday)
+    days_since_monday = current_date.weekday()  # 0 is Monday, 6 is Sunday
+    week_start = current_date - timedelta(days=days_since_monday)
+    week_end = week_start + timedelta(days=6)
+    
+    # Generate labels and data for chart (7 days, starting from Monday)
+    labels = []
+    data = []
+    
+    for i in range(7):
+        day = week_start + timedelta(days=i)
+        count = GoalCompletion.objects.filter(
+            user=user,
+            date=day,
+            completed=True
+        ).count()
+        labels.append(day.strftime("%d.%m"))
+        data.append(count)
+    
+    # Navigation for previous and next week
+    prev_week = week_offset - 1
+    next_week = week_offset + 1
+    
+    # Get the day name for today (if viewing current week)
+    day_names = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz']
+    if week_offset == 0:
+        today_day_name = day_names[today.weekday()]
+    else:
+        today_day_name = None
+    
+    # Get all user goals
+    user_goals = Goal.objects.filter(user=user)
+    
+    # Get all completed goals for the selected week
+    completed_this_week = GoalCompletion.objects.filter(
+        user=user,
+        date__range=[week_start, week_end],
+        completed=True
+    ).values_list('goal_id', flat=True)
+    
+    # Filter incomplete goals for this week
+    # A goal is incomplete if it's not in the completed_this_week list
+    # and its day_of_week matches a day in the current week
+    incomplete_goals = []
+    
+    for goal in user_goals:
+        if goal.id not in completed_this_week and goal.day_of_week:
+            day = goal.day_of_week
+            # Make sure day_of_week isn't None and is in our list
+            if day in day_names:
+                is_today = (day == today_day_name)
+                incomplete_goals.append({
+                    'id': goal.id,
+                    'title': goal.title,
+                    'day': day,
+                    'points': goal.points,
+                    'description': goal.description,
+                    'is_today': is_today
+                })
+    
+    return render(request, "accounts/profile.html", {
+        "chart_labels": labels,
+        "chart_data": data,
+        "goals": Goal.objects.filter(user=user),
+        "incomplete_goals": incomplete_goals,
+        "week_start": week_start.strftime("%d.%m.%Y"),
+        "week_end": week_end.strftime("%d.%m.%Y"),
+        "prev_week": prev_week,
+        "next_week": next_week,
+        "today_day_name": today_day_name
+    })
 
 
 @login_required
@@ -70,9 +147,21 @@ def add_goal(request):
     if request.method == "POST":
         form = GoalForm(request.POST)
         if form.is_valid():
-            goal = form.save(commit=False)
-            goal.user = request.user
-            goal.save()
+            # form içindeki day_of_week değerini alalım
+            days = request.POST.getlist('day_of_week')
+            
+            # Her gün için ayrı bir Goal nesnesi oluştur
+            for day in days:
+                goal = Goal(
+                    user=request.user,
+                    title=form.cleaned_data['title'],
+                    description=form.cleaned_data['description'],
+                    points=form.cleaned_data['points'],
+                    completed=form.cleaned_data['completed'],
+                    day_of_week=day  # Tek bir gün belirt
+                )
+                goal.save()
+            
             return redirect('goal_list')
     else:
         form = GoalForm()
@@ -196,39 +285,12 @@ def home(request):
 
 
 @login_required
-def profile_view(request):
-    user = request.user
-    today = timezone.now().date()
-
-    labels = []
-    data = []
-
-    for i in range(6, -1, -1):
-        day = today - timedelta(days=i)
-        count = GoalCompletion.objects.filter(
-            user=user,
-            date=day,
-            completed=True
-        ).count()
-        labels.append(day.strftime("%d.%m"))
-        data.append(count)
-
-    goals = Goal.objects.filter(user=user)
-
-    return render(request, "profile.html", {
-        "chart_labels": labels,
-        "chart_data": data,
-        "goals": goals
-    })
-
-
-@login_required
 def delete_goal(request, goal_id):
     goal = get_object_or_404(Goal, id=goal_id, user=request.user)
     if request.method == "POST":
         goal.delete()
-        return redirect('goal_list')
-    return render(request, 'accounts/confirm_delete_goal.html', {'goal': goal})
+    return redirect('goal_list')
+
 
 @login_required
 def add_goal_from_task(request, task_id):

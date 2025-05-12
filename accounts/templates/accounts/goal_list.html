@@ -1,62 +1,120 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <title>Hedeflerim</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            background-color: #f4f4f4;
+            background-color: #f9f9f9;
         }
+
         .navbar {
+            padding: 0px 10px;
             background-color: #3b5d20;
-            padding: 10px;
             color: white;
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            height: 58px;
         }
+
         .navbar a {
             color: white;
             text-decoration: none;
             margin: 0 15px;
+            font-weight: 500;
         }
+
         .container {
-            max-width: 800px;
-            margin: 50px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
         }
-        h2, h3 {
-            color: #3b5d20;
+
+        h2,
+        h3 {
+            color: #2f4f2f;
+            margin-bottom: 10px;
         }
+
+        .goal-section {
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .card-meta {
+            color: #777;
+            margin-bottom: 12px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
         .btn {
-            background-color: #3b5d20;
+            background-color: #2f4f2f;
             color: white;
             padding: 6px 12px;
-            border-radius: 5px;
+            border-radius: 6px;
             text-decoration: none;
-            display: inline-block;
-            margin-left: 10px;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
         }
+
+        .btn:hover {
+            background-color: #446b44;
+        }
+
         .btn-danger {
-            background-color: #a94442;
+            background-color: #d9534f;
         }
-        ul {
-            list-style: none;
-            padding-left: 0;
+
+        .btn-danger:hover {
+            background-color: #c9302c;
         }
-        li {
-            margin-bottom: 15px;
+
+        .point-badge {
+            background-color: #e3f2e1;
+            color: #2f4f2f;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 13px;
         }
-        form {
-            display: inline;
+
+        .status {
+            color: green;
+            font-weight: 500;
         }
     </style>
 </head>
+
 <body>
     <div class="navbar">
         <div>
@@ -76,26 +134,39 @@
         <h2>Haftalık Hedeflerim</h2>
 
         {% for day, goals in grouped_goals %}
+        <div class="goal-section">
             <h3>📅 {{ day }}</h3>
-            <ul>
-                {% for goal in goals %}
-                    <li>
-                        <strong>{{ goal.title }}</strong> – {{ goal.points }} Puan
 
-                        {% if goal.id in completed_today %}
-                            ✅ <span style="color: green;">Bugün Tamamlandı</span>
-                        {% else %}
-                            <a href="{% url 'complete_goal' goal.id %}" class="btn">Bugün Tamamla</a>
-                        {% endif %}
+            {% if goals %}
+            {% for goal in goals %}
+            <div class="card">
+                <div class="card-title">{{ goal.title }}</div>
+                <div class="card-meta">
+                    <span class="point-badge">{{ goal.points }} Puan</span>
+                </div>
+                <div class="actions">
+                    {% if goal.id in completed_today %}
+                    <span class="status">✅ Bugün Tamamlandı</span>
+                    {% else %}
+                    <a href="{% url 'complete_goal' goal.id %}" class="btn">Bugün Tamamla</a>
+                    {% endif %}
 
-                        <form action="{% url 'delete_goal' goal.id %}" method="post">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-danger">Sil</button>
-                        </form>
-                    </li>
-                {% endfor %}
-            </ul>
+                    <form action="{% url 'delete_goal' goal.id %}" method="post" style="margin: 0; display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Sil</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div style="padding: 15px; background-color: #fffbe6; border-left: 4px solid #ffcc00; border-radius: 6px;">
+                Bu gün için hedef bulunmuyor.
+            </div>
+            {% endif %}
+        </div>
         {% endfor %}
     </div>
+
 </body>
+
 </html>

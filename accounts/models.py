@@ -29,7 +29,8 @@ class Goal(models.Model):
     end_date = models.DateField(blank=True, null=True)
 
     def get_day_list(self):
-        return self.day_of_week.split(',') if self.day_of_week else []
+        # Artık her hedef tek bir gün tutuyor, listeye çevirip döndür
+        return [self.day_of_week] if self.day_of_week else []
 
     def __str__(self):
         return f"{self.user.username} - {self.title}"

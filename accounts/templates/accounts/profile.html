@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <title>Profil Sayfası</title>
@@ -10,26 +11,32 @@
             margin: 0;
             background-color: #f4f4f4;
         }
+
         .navbar {
+            padding: 0px 10px;
             background-color: #3b5d20;
-            padding: 10px;
+            height: 58px;
+            align-items: center;
             color: white;
             display: flex;
             justify-content: space-between;
         }
+
         .navbar a {
             color: white;
             text-decoration: none;
             margin: 0 15px;
         }
+
         .container {
             max-width: 900px;
             margin: 50px auto;
             background: white;
             padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+
         .btn {
             background-color: #3b5d20;
             color: white;
@@ -38,31 +45,97 @@
             text-decoration: none;
             display: inline-block;
             margin: 10px 0;
+            transition: all 0.3s ease;
         }
+
+        .btn:hover {
+            background-color: #4c7629;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
         h2 {
             text-align: center;
         }
+
+        .week-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 30px 0;
+            padding: 15px;
+            background: linear-gradient(to right, #f8f9fa, #e9ecef, #f8f9fa);
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .week-date {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 25px;
+            color: #3b5d20;
+            background-color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            background-color: #3b5d20;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .nav-btn:hover {
+            background-color: #4c7629;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-arrow {
+            font-size: 20px;
+            margin: 0 5px;
+        }
+
+        .chart-container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 30px;
         }
-        th, td {
+
+        th,
+        td {
             border: 1px solid #ccc;
             padding: 10px;
             text-align: center;
         }
+
         th {
             background-color: #e8f5e9;
         }
     </style>
 </head>
+
 <body>
     <div class="navbar">
         <div>
             <a href="{% url 'home' %}">Ana Sayfa</a>
             <a href="{% url 'profile' %}">Profil</a>
-            <a href="{% url 'edit_profile' %}">Profil Düzenle</a> 
+            <a href="{% url 'edit_profile' %}">Profil Düzenle</a>
             <a href="{% url 'add_goal' %}">Hedef Ekle</a>
             <a href="{% url 'goal_list' %}">Hedeflerim</a>
             <a href="{% url 'reward_list' %}">Ödül Al</a>
@@ -77,70 +150,100 @@
         <h2>Hoş Geldin, {{ user.username }}!</h2>
         <p>Haftalık gelişimini aşağıda görebilirsin:</p>
 
-        <!-- GRAFİK -->
-        <canvas id="progressChart" width="400" height="200"></canvas>
+        <!-- HAFTA NAVİGASYONU -->
+        <div class="week-nav">
+            <a href="?week_offset={{ prev_week }}" class="nav-btn">
+                <span class="nav-arrow">←</span> Önceki Hafta
+            </a>
+            <div class="week-date">{{ week_start }} - {{ week_end }}</div>
+            <a href="?week_offset={{ next_week }}" class="nav-btn">
+                Sonraki Hafta <span class="nav-arrow">→</span>
+            </a>
+        </div>
 
-        <!-- TABLO -->
-        <h3>Hedef Özeti</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Hedef</th>
-                    <th>Başlangıç</th>
-                    <th>Bitiş</th>
-                    <th>Tamamlanma (%)</th>
-                    <th>Durum</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for goal in goals %}
-                <tr>
-                    <td>{{ goal.title }}</td>
-                    <td>{{ goal.start_date }}</td>
-                    <td>{{ goal.end_date }}</td>
-                    <td>{{ goal.progress }}%</td>
-                    <td>
-                        {% if goal.completed %}
-                            Tamamlandı
-                        {% else %}
-                            Devam Ediyor
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <!-- GRAFİK -->
+        <div class="chart-container">
+            <canvas id="progressChart" width="400" height="200"></canvas>
+        </div>
+
+        <!-- TAMAMLANMAYAN GÖREVLER -->
+        {% if incomplete_goals %}
+        <div style="margin-top: 40px;">
+            <h3 style="color: #3b5d20; text-align: center; margin-bottom: 20px;">Tamamlanmayan Görevler</h3>
+            <div
+                style="background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th
+                                style="background-color: #e8f5e9; padding: 12px; border: 1px solid #ddd; text-align: left;">
+                                Görev</th>
+                            <th
+                                style="background-color: #e8f5e9; padding: 12px; border: 1px solid #ddd; text-align: center;">
+                                Gün</th>
+                            <th
+                                style="background-color: #e8f5e9; padding: 12px; border: 1px solid #ddd; text-align: center;">
+                                Puan</th>
+                            <th
+                                style="background-color: #e8f5e9; padding: 12px; border: 1px solid #ddd; text-align: center;">
+                                İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for goal in incomplete_goals %}
+                        <tr {% if goal.is_today %}style="background-color: #f9fbf7;" {% endif %}>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: left;">
+                                <strong>{{ goal.title }}</strong>
+                                {% if goal.description %}
+                                <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">{{ goal.description }}</p>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">{{ goal.day }}</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">{{ goal.points }}
+                            </td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                <a href="{% url 'complete_goal' goal.id %}" class="btn"
+                                    style="margin: 0; padding: 8px 15px; font-size: 14px;">Tamamla</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Chart.js script -->
     <!-- Verileri güvenli şekilde JSON olarak göm -->
-{{ chart_labels|json_script:"labels-data" }}
-{{ chart_data|json_script:"progress-data" }}
+    {{ chart_labels|json_script:"labels-data" }}
+    {{ chart_data|json_script:"progress-data" }}
 
-<script>
-    const labels = JSON.parse(document.getElementById('labels-data').textContent);
-    const data = JSON.parse(document.getElementById('progress-data').textContent);
+    <script>
+        const labels = JSON.parse(document.getElementById('labels-data').textContent);
+        const data = JSON.parse(document.getElementById('progress-data').textContent);
 
-    const ctx = document.getElementById('progressChart').getContext('2d');
-    const progressChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Tamamlanan Görev Sayısı',
-                data: data,
-                backgroundColor: 'rgba(59, 93, 32, 0.6)'
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        const progressChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Tamamlanan Görev Sayısı',
+                    data: data,
+                    backgroundColor: 'rgba(59, 93, 32, 0.6)'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
                 }
             }
-        }
-    });
-</script>
+        });
+    </script>
 </body>
+
 </html>
