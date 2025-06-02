@@ -11,6 +11,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django import forms
 from django.views.decorators.http import require_POST
+from django.db import models
+from dateutil.relativedelta import relativedelta
 
 from .models import (
     Profile, Goal, Reward, TaskTemplate,
@@ -308,24 +310,155 @@ def add_goal_from_task(request, task_id):
 @require_POST
 @login_required
 def daily_bonus_view(request):
+    import json
     today = date.today()
     profile = Profile.objects.get(user=request.user)
 
     if profile.daily_bonus_claimed == today:
         return JsonResponse({'success': False, 'message': '⏳ Bugün zaten çark bonusunu aldınız!'})
 
-    reward = random.choice([5, 10, 15, 20])
-    profile.points += reward
+    # Frontend'den gelen puan değerini al
+    try:
+        data = json.loads(request.body)
+        points = data.get('points', 0)
+        # Geçerli puan değerlerini kontrol et
+        if points not in [100, 200, 300, 400, 500]:
+            points = random.choice([100, 200, 300, 400, 500])
+    except:
+        points = random.choice([100, 200, 300, 400, 500])
+
+    profile.points += points
     profile.daily_bonus_claimed = today
     profile.save()
 
-    DailyBonusHistory.objects.create(user=request.user, points_earned=reward)
+    DailyBonusHistory.objects.create(user=request.user, points_earned=points)
 
-    return JsonResponse({'success': True, 'reward': reward})
+    return JsonResponse({'success': True, 'reward': points})
+
+@login_required
+def check_daily_bonus_status(request):
+    today = date.today()
+    profile = Profile.objects.get(user=request.user)
+    
+    if profile.daily_bonus_claimed == today:
+        # Bugün kazanılan puanı bul
+        try:
+            bonus_history = DailyBonusHistory.objects.filter(
+                user=request.user, 
+                created_at__date=today
+            ).latest('created_at')
+            points_earned = bonus_history.points_earned
+        except DailyBonusHistory.DoesNotExist:
+            points_earned = 0
+            
+        return JsonResponse({
+            'already_claimed': True,
+            'points_earned': points_earned
+        })
+    else:
+        return JsonResponse({'already_claimed': False})
 
 def challenge_list(request):
     today = timezone.now().date()
-    challenges = Challenge.objects.filter(start_date__lte=today, end_date__gte=today, is_active=True)
-    return render(request, 'challenges/challenge_list.html', {'challenges': challenges})
+    # Debug: Tüm challenge'ları getir ve filtrele
+    all_challenges = Challenge.objects.all()
+    active_challenges = Challenge.objects.filter(is_active=True)
+    date_filtered_challenges = Challenge.objects.filter(start_date__lte=today, end_date__gte=today, is_active=True)
+    
+    # Debug bilgileri için
+    context = {
+        'challenges': date_filtered_challenges,
+        'total_challenges': all_challenges.count(),
+        'active_challenges': active_challenges.count(),
+        'date_filtered_count': date_filtered_challenges.count(),
+        'today': today,
+    }
+    
+    return render(request, 'challenges/challenge_list.html', context)
+
+@login_required
+def join_challenge(request, challenge_id):
+    challenge = get_object_or_404(Challenge, id=challenge_id)
+
+    # Katılım daha önce yoksa oluştur
+    participation, created = ChallengeParticipation.objects.get_or_create(
+        user=request.user,
+        challenge=challenge
+    )
+
+    if created:
+        # Challenge'ın görevlerini kullanıcının hedeflerine ekle
+        for task in challenge.tasks.all():
+            # Günleri Türkçe karşılıklarına çevir
+            day_mapping = {
+                'MON': 'Pzt',
+                'TUE': 'Sal',
+                'WED': 'Çar',
+                'THU': 'Per',
+                'FRI': 'Cum',
+                'SAT': 'Cmt',
+                'SUN': 'Paz'
+            }
+            
+            Goal.objects.create(
+                user=request.user,
+                title=f"[{challenge.title}] {task.description}",  # Challenge adını başına ekle
+                description=f"Challenge: {challenge.title} - {task.description}",
+                points=task.points,
+                completed=False,
+                day_of_week=day_mapping.get(task.day, 'Pzt'),  # Günü Türkçe karşılığıyla kaydet
+                start_date=challenge.start_date,
+                end_date=challenge.end_date
+            )
+        
+        messages.success(request, f"'{challenge.title}' hedef paketine başarıyla katıldınız! Hedefleriniz listeye eklendi.")
+    else:
+        messages.info(request, f"'{challenge.title}' hedef paketine zaten katılmışsınız.")
+
+    return redirect('home')  # Ana sayfaya yönlendir
+
+@login_required
+def leaderboard(request):
+    """Leaderboard sayfası - kullanıcıları puanlarına göre sıralar"""
+    # En yüksek puanlı kullanıcıları getir (top 50)
+    top_users = Profile.objects.select_related('user').order_by('-points')[:50]
+    
+    # Mevcut kullanıcının sıralamasını bul
+    user_profile = Profile.objects.get(user=request.user)
+    user_rank = Profile.objects.filter(points__gt=user_profile.points).count() + 1
+    
+    # Haftalık en aktif kullanıcılar (bu hafta en çok hedef tamamlayanlar)
+    today = timezone.now().date()
+    week_start = today - timedelta(days=today.weekday())
+    week_end = week_start + timedelta(days=6)
+    
+    weekly_completions = GoalCompletion.objects.filter(
+        date__range=[week_start, week_end],
+        completed=True
+    ).values('user__username', 'user__profile__points').annotate(
+        completions=models.Count('id')
+    ).order_by('-completions')[:10]
+    
+    # Aylık istatistikler
+    month_start = today.replace(day=1)
+    month_end = month_start + relativedelta(months=1) - timedelta(days=1)
+    
+    monthly_completions = GoalCompletion.objects.filter(
+        date__range=[month_start, month_end],
+        completed=True
+    ).values('user__username', 'user__profile__points').annotate(
+        completions=models.Count('id')
+    ).order_by('-completions')[:10]
+    
+    context = {
+        'top_users': top_users,
+        'user_rank': user_rank,
+        'user_points': user_profile.points,
+        'weekly_leaders': weekly_completions,
+        'monthly_leaders': monthly_completions,
+        'total_users': Profile.objects.count(),
+    }
+    
+    return render(request, 'accounts/leaderboard.html', context)
 
 

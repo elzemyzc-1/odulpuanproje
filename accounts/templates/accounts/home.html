@@ -1,245 +1,516 @@
 <!DOCTYPE html>
 <html lang="tr">
-
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Ana Sayfa</title>
     {% load static %}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body {
-            background-color: #f4f4f4;
-            font-family: Arial, sans-serif;
-        }
+      body {
+        background-color: #f4f4f4;
+        font-family: Arial, sans-serif;
+      }
 
-        .navbar-custom {
-            background-color: #3b5d20;
-        }
+      .navbar-custom {
+        background-color: #3b5d20;
+      }
 
-        .navbar-custom .nav-link,
-        .navbar-custom .navbar-brand {
-            color: white;
-        }
+      .navbar-custom .nav-link,
+      .navbar-custom .navbar-brand {
+        color: white;
+      }
 
-        .hero {
-            background-color: #3b5d20;
-            color: white;
-            padding: 60px 20px;
-            text-align: center;
-        }
+      .hero {
+        background-color: #3b5d20;
+        color: white;
+        padding: 60px 20px;
+        text-align: center;
+      }
 
-        .hero img {
-            max-width: 300px;
-            margin-top: 30px;
-            border-radius: 10px;
-        }
+      .hero img {
+        max-width: 300px;
+        margin-top: 30px;
+        border-radius: 10px;
+      }
 
-        .content {
-            max-width: 800px;
-            margin: 40px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
+      .content {
+        max-width: 800px;
+        margin: 40px auto;
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
 
-        .bonus-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 9999;
-            background-color: #ffc107;
-            color: #000;
-            border: none;
-            padding: 12px 18px;
-            border-radius: 50px;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
+      .bonus-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999;
+        background-color: #ffc107;
+        color: #000;
+        border: none;
+        padding: 12px 18px;
+        border-radius: 50px;
+        font-weight: bold;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      }
 
-        .bonus-btn:hover {
-            background-color: #ffca2c;
-        }
+      .bonus-btn:hover {
+        background-color: #ffca2c;
+      }
 
-        .wheel-modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    z-index: 9999;
-    justify-content: center;
-    align-items: center;
-        }
+      .wheel-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+      }
 
-        .wheel-box {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-        }
+      .wheel-box {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        text-align: center;
+        max-width: 500px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
 
-        .wheel-container {
-            margin: 20px auto;
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            border: 10px solid #ccc;
-            position: relative;
-            overflow: hidden;
-        }
+      .wheel-container {
+        margin: 20px auto;
+        width: 300px;
+        height: 300px;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
 
-        .wheel {
-            width: 100%;
-            height: 100%;
-            transform: rotate(0deg);
-            transition: transform 4s ease-out;
+      .wheel-canvas {
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
+      }
+
+      .wheel-pointer {
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 15px solid transparent;
+        border-right: 15px solid transparent;
+        border-bottom: 30px solid #d4af37;
+        z-index: 10;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+      }
+
+      .start-btn {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(45deg, #d4af37, #ffd700);
+        color: #000;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 50%;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+        transition: all 0.3s ease;
+        z-index: 15;
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+
+      .start-btn:hover {
+        transform: translate(-50%, -50%) scale(1.1);
+        box-shadow: 0 6px 20px rgba(212, 175, 55, 0.6);
+      }
+
+      .start-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: translate(-50%, -50%);
+        box-shadow: none;
+      }
+
+      .bonus-result {
+        margin-top: 20px;
+        padding: 15px;
+        background: linear-gradient(45deg, #28a745, #20c997);
+        color: white;
+        border-radius: 10px;
+        font-size: 18px;
+        font-weight: bold;
+        display: none;
+        animation: bounceIn 0.6s ease-out;
+      }
+
+      @keyframes bounceIn {
+        0% {
+          transform: scale(0.3);
+          opacity: 0;
         }
+        50% {
+          transform: scale(1.05);
+        }
+        70% {
+          transform: scale(0.9);
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      .wheel-title {
+        color: #d4af37;
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .daily-info {
+        background: linear-gradient(45deg, #17a2b8, #20c997);
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin: 20px 0;
+        font-weight: bold;
+        display: none;
+      }
+
+      .already-used {
+        background: linear-gradient(45deg, #ffc107, #fd7e14);
+        color: #000;
+      }
     </style>
-</head>
+  </head>
 
-<!-- ÇARK GÖRSELİ -->
-<div id="wheel-container" style="position: fixed; bottom: 100px; right: 30px; display: none; z-index: 10000; text-align: center;">
-    <img id="wheel" src="{% static 'images/wheel.png' %}" alt="Bonus Wheel" style="width: 120px; transition: transform 3s ease-out;">
-</div>
-
-
-<body>
-
+  <body>
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg navbar-custom">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'home' %}">Kişisel Gelişim Ödül Puan Sistemi</a>
-            <div>
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0 d-flex flex-row gap-3">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'goal_list' %}">Hedeflerim</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'add_goal' %}">Hedef Ekle</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'reward_list' %}">Ödül Al</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'task_pool' %}">Görevler</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">Profil</a></li>
-                    <li class="nav-item">
-                        <form method="post" action="{% url 'logout' %}" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="nav-link" style="background: none; border: none;">Çıkış Yap</button>
-                        </form>
-                    </li>
-                </ul>
-            </div>
-            <span class="text-white fw-bold">Toplam Puan: {{ user.profile.points }}</span>
+      <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'home' %}"
+          >Kişisel Gelişim Ödül Puan Sistemi</a
+        >
+        <div>
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0 d-flex flex-row gap-3">
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'goal_list' %}">Hedeflerim</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'add_goal' %}">Hedef Ekle</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'reward_list' %}">Ödül Al</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'task_pool' %}">Görevler</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'leaderboard' %}"
+                >🏆 Liderlik Tablosu</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'profile' %}">Profil</a>
+            </li>
+            {% if user.is_superuser %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'admin:index' %}">Admin</a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+              <form
+                method="post"
+                action="{% url 'logout' %}"
+                style="display: inline"
+              >
+                {% csrf_token %}
+                <button
+                  type="submit"
+                  class="nav-link"
+                  style="background: none; border: none"
+                >
+                  Çıkış Yap
+                </button>
+              </form>
+            </li>
+          </ul>
         </div>
+        <span class="text-white fw-bold"
+          >Toplam Puan: {{ user.profile.points }}</span
+        >
+      </div>
     </nav>
 
     {% if messages %}
     <div class="container mt-4">
-        {% for message in messages %}
-        <div class="alert alert-success" role="alert">
-            {{ message }}
-        </div>
-        {% endfor %}
+      {% for message in messages %}
+      <div class="alert alert-success" role="alert">{{ message }}</div>
+      {% endfor %}
     </div>
     {% endif %}
 
     <div class="hero">
-        <h1>Hoş Geldin, {{ user.username }}!</h1>
-        <p>Kişisel gelişim yolculuğuna başla!</p>
-        <img src="{% static 'images/homepage.png' %}" alt="Kişisel Gelişim Ödül Puan Sistemi">
+      <h1>Hoş Geldin, {{ user.username }}!</h1>
+      <p>Kişisel gelişim yolculuğuna başla!</p>
+      <img
+        src="{% static 'images/homepage.png' %}"
+        alt="Kişisel Gelişim Ödül Puan Sistemi"
+      />
     </div>
 
     <div class="content">
-        <h2>Bugün yeni bir hedef için mükemmel bir gün!</h2>
-        <p>Hedefler koy, gelişimini takip et ve ödüller kazan.</p>
-        <a href="{% url 'goal_list' %}" class="btn mt-3 me-2" style="background-color: #3b5d20; color: white; font-weight: 500;">
-            🎯 Hedeflerimi Gör
-        </a>
-        <a href="{% url 'challenge_list' %}" class="btn mt-3" style="background-color: #3b5d20; color: white; font-weight: 500;">
-            📅 Hedef Paketleri
-        </a>
+      <h2>Bugün yeni bir hedef için mükemmel bir gün!</h2>
+      <p>Hedefler koy, gelişimini takip et ve ödüller kazan.</p>
+      <a
+        href="{% url 'goal_list' %}"
+        class="btn mt-3 me-2"
+        style="background-color: #3b5d20; color: white; font-weight: 500"
+      >
+        🎯 Hedeflerimi Gör
+      </a>
+      <a
+        href="{% url 'challenge_list' %}"
+        class="btn mt-3"
+        style="background-color: #3b5d20; color: white; font-weight: 500"
+      >
+        📅 Hedef Paketleri
+      </a>
     </div>
 
     <!-- GÜNLÜK BONUS BUTONU -->
-    <button onclick="startSpin()" class="bonus-btn">🎁 Günlük Bonus</button>
+    <button onclick="openWheelModal()" class="bonus-btn">
+      🎁 Günlük Bonus Çarkı
+    </button>
 
     <!-- ÇARK MODAL -->
     <div id="wheelModal" class="wheel-modal">
-        <div class="wheel-box">
-            <h4>🎁 Günlük Bonus Çarkı</h4>
-            <div class="wheel-container">
-                <img id="wheel" img src="{% static 'images/wheel.png' %}" alt="Çark" class="wheel" />
-            </div>            
-            <p id="bonus-result" style="display:none;"></p>
-            <button class="btn btn-sm btn-danger mt-3" onclick="closeWheelModal()">Kapat</button>
+      <div class="wheel-box">
+        <div class="wheel-title">🎁 Günlük Bonus Çarkı</div>
+        <div id="daily-info" class="daily-info"></div>
+        <div class="wheel-container">
+          <div class="wheel-pointer"></div>
+          <canvas
+            id="wheelCanvas"
+            class="wheel-canvas"
+            width="300"
+            height="300"
+          ></canvas>
+          <button id="startBtn" class="start-btn" onclick="startSpin()">
+            🎯<br />Başlat
+          </button>
         </div>
-    </div>
-
-    <!-- ÇARK MODAL -->
-<div id="wheelModal" class="wheel-modal">
-    <div class="wheel-box">
-      <h4>🎁 Günlük Bonus Çarkı</h4>
-      <div class="wheel-container">
-        <img id="wheelImage" src="{% static 'images/wheel.png' %}" alt="Çark" class="wheel">
+        <div id="bonus-result" class="bonus-result"></div>
+        <button
+          class="btn btn-sm btn-secondary mt-3"
+          onclick="closeWheelModal()"
+        >
+          Kapat
+        </button>
       </div>
-      <p id="bonus-result" style="display:none; font-weight: bold;"></p>
-      <button class="btn btn-sm btn-danger mt-3" onclick="closeWheelModal()">Kapat</button>
     </div>
-  </div>
-  
 
     <script>
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
+      // Çark segmentleri (puanlar)
+      const segments = [100, 200, 300, 400, 500];
+      const colors = ["#ff6b6b", "#4ecdc4", "#45b7d1", "#96ceb4", "#feca57"];
+      let isSpinning = false;
+
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+              cookieValue = decodeURIComponent(
+                cookie.substring(name.length + 1)
+              );
+              break;
             }
-            return cookieValue;
+          }
         }
+        return cookieValue;
+      }
 
-        function startSpin() {
-            document.getElementById("wheelModal").style.display = "flex";
-            const wheel = document.getElementById("wheel");
-            const degrees = 360 * 5 + Math.floor(Math.random() * 360);  // 5 tur + rastgele duruş
-            wheel.style.transform = `rotate(${degrees}deg)`;
+      function drawWheel() {
+        const canvas = document.getElementById("wheelCanvas");
+        const ctx = canvas.getContext("2d");
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = 140;
 
-wheel.addEventListener("transitionend", function handler() {
-    wheel.removeEventListener("transitionend", handler);
+        // Çarkı temizle
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    fetch("/accounts/daily-bonus/", {
+        const anglePerSegment = (2 * Math.PI) / segments.length;
 
-                    method: "POST",
-                    headers: {
-                        "X-CSRFToken": getCookie("csrftoken"),
-                        "Content-Type": "application/json"
-                    }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById("bonus-result").style.display = "block";
-                        document.getElementById("bonus-result").innerText = `🎉 ${data.reward} puan kazandınız!`;
-                        setTimeout(() => location.reload(), 2000);
-                    } else {
-                        document.getElementById("wheelModal").style.display = "none";
-                        Swal.fire("⏳", data.message, "info");
-                    }
-                })
-                .catch(() => {
-                    document.getElementById("wheelModal").style.display = "none";
-                    Swal.fire("Hata", "Bir hata oluştu!", "error");
-                });
-            }, 4000);
-        }
+        segments.forEach((segment, index) => {
+          const startAngle = index * anglePerSegment;
+          const endAngle = startAngle + anglePerSegment;
 
-        function closeWheelModal() {
-            document.getElementById("wheelModal").style.display = "none";
-        }
+          // Segment çiz
+          ctx.beginPath();
+          ctx.moveTo(centerX, centerY);
+          ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+          ctx.closePath();
+          ctx.fillStyle = colors[index];
+          ctx.fill();
+          ctx.strokeStyle = "#fff";
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          // Metni çiz
+          ctx.save();
+          ctx.translate(centerX, centerY);
+          ctx.rotate(startAngle + anglePerSegment / 2);
+          ctx.textAlign = "center";
+          ctx.fillStyle = "#fff";
+          ctx.font = "bold 20px Arial";
+          ctx.fillText(segment, radius * 0.7, 5);
+          ctx.restore();
+        });
+
+        // Merkez daire
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 40, 0, 2 * Math.PI);
+        ctx.fillStyle = "#fff";
+        ctx.fill();
+        ctx.strokeStyle = "#ddd";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      function openWheelModal() {
+        document.getElementById("wheelModal").style.display = "flex";
+        checkDailyBonusStatus();
+        drawWheel();
+      }
+
+      function checkDailyBonusStatus() {
+        fetch("/accounts/check-daily-bonus/", {
+          method: "GET",
+          headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+          },
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            const infoDiv = document.getElementById("daily-info");
+            const startBtn = document.getElementById("startBtn");
+
+            if (data.already_claimed) {
+              infoDiv.innerHTML = `⏰ Bugün zaten ${data.points_earned} puan kazandınız!<br>Yarın tekrar gelebilirsiniz.`;
+              infoDiv.className = "daily-info already-used";
+              infoDiv.style.display = "block";
+              startBtn.disabled = true;
+              startBtn.textContent = "Kullanıldı";
+              startBtn.style.background = "#ccc";
+            } else {
+              infoDiv.innerHTML =
+                "🎉 Bugünkü şansınızı deneyin!<br>100-500 puan arası kazanabilirsiniz.";
+              infoDiv.className = "daily-info";
+              infoDiv.style.display = "block";
+              startBtn.disabled = false;
+              startBtn.innerHTML = "🎯<br>Başlat";
+              startBtn.style.background =
+                "linear-gradient(45deg, #d4af37, #ffd700)";
+            }
+          })
+          .catch(() => {
+            console.log("Daily bonus status kontrolünde hata");
+          });
+      }
+
+      function startSpin() {
+        if (isSpinning) return;
+
+        isSpinning = true;
+        document.getElementById("startBtn").disabled = true;
+        document.getElementById("startBtn").textContent = "Çeviriyor...";
+        document.getElementById("bonus-result").style.display = "none";
+
+        const canvas = document.getElementById("wheelCanvas");
+        const spins = 5; // Kaç tur dönecek
+        const randomAngle = Math.random() * 360;
+        const totalDegrees = spins * 360 + randomAngle;
+
+        // Hangi segmente denk geldiğini hesapla
+        const segmentAngle = 360 / segments.length;
+        const normalizedAngle = (360 - (randomAngle % 360)) % 360;
+        const segmentIndex = Math.floor(normalizedAngle / segmentAngle);
+        const wonPoints = segments[segmentIndex];
+
+        // Animasyon uygula
+        canvas.style.transform = `rotate(${totalDegrees}deg)`;
+
+        // Animasyon bittiğinde
+        setTimeout(() => {
+          // Sunucuya puan gönder
+          fetch("/accounts/daily-bonus/", {
+            method: "POST",
+            headers: {
+              "X-CSRFToken": getCookie("csrftoken"),
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ points: wonPoints }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.success) {
+                document.getElementById("bonus-result").style.display = "block";
+                document.getElementById(
+                  "bonus-result"
+                ).innerHTML = `🎉 Tebrikler! <br><strong>${wonPoints} puan</strong> kazandınız!`;
+                setTimeout(() => location.reload(), 3000);
+              } else {
+                closeWheelModal();
+                Swal.fire("⏳", data.message, "info");
+              }
+            })
+            .catch(() => {
+              closeWheelModal();
+              Swal.fire("Hata", "Bir hata oluştu!", "error");
+            })
+            .finally(() => {
+              isSpinning = false;
+              document.getElementById("startBtn").disabled = false;
+              document.getElementById("startBtn").textContent = "🎯\nBaşlat";
+            });
+        }, 4000);
+      }
+
+      function closeWheelModal() {
+        document.getElementById("wheelModal").style.display = "none";
+        const canvas = document.getElementById("wheelCanvas");
+        canvas.style.transform = "rotate(0deg)";
+        document.getElementById("bonus-result").style.display = "none";
+        isSpinning = false;
+        document.getElementById("startBtn").disabled = false;
+        document.getElementById("startBtn").textContent = "🎯\nBaşlat";
+      }
     </script>
-</body>
-
+  </body>
 </html>

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Liderlik Tablosu</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        min-height: 100vh;
+      }
+
+      .navbar-custom {
+        background-color: #3b5d20;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .navbar-custom .nav-link,
+      .navbar-custom .navbar-brand {
+        color: white;
+        font-weight: 500;
+      }
+
+      .navbar-custom .nav-link:hover {
+        color: #90ee90;
+      }
+
+      .leaderboard-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        margin: 2rem auto;
+        max-width: 1200px;
+        overflow: hidden;
+      }
+
+      .leaderboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+      }
+
+      .user-stats {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 1rem;
+        margin-top: 1rem;
+        backdrop-filter: blur(10px);
+      }
+
+      .rank-card {
+        transition: all 0.3s ease;
+        border: none;
+        border-radius: 15px;
+        margin-bottom: 1rem;
+        overflow: hidden;
+      }
+
+      .rank-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      }
+
+      .rank-1 {
+        background: linear-gradient(135deg, #ffd700, #ffa500);
+        color: white;
+      }
+
+      .rank-2 {
+        background: linear-gradient(135deg, #c0c0c0, #a0a0a0);
+        color: white;
+      }
+
+      .rank-3 {
+        background: linear-gradient(135deg, #cd7f32, #b8860b);
+        color: white;
+      }
+
+      .rank-other {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      }
+
+      .crown {
+        font-size: 2rem;
+        margin-right: 0.5rem;
+      }
+
+      .user-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 1.2rem;
+      }
+
+      .stats-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+      }
+
+      .stats-title {
+        color: #667eea;
+        font-weight: bold;
+        margin-bottom: 1rem;
+      }
+
+      .weekly-card,
+      .monthly-card {
+        background: linear-gradient(135deg, #43cea2, #185a9d);
+        color: white;
+      }
+
+      .medal {
+        font-size: 1.5rem;
+        margin-right: 0.5rem;
+      }
+
+      .points-badge {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-weight: bold;
+      }
+
+      .tab-content {
+        padding: 2rem;
+      }
+
+      .nav-tabs .nav-link {
+        border: none;
+        color: #667eea;
+        font-weight: 500;
+      }
+
+      .nav-tabs .nav-link.active {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border-radius: 10px 10px 0 0;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'home' %}"
+          >Kişisel Gelişim Ödül Puan Sistemi</a
+        >
+        <div>
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0 d-flex flex-row gap-3">
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'goal_list' %}">Hedeflerim</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'add_goal' %}">Hedef Ekle</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'reward_list' %}">Ödül Al</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'task_pool' %}">Görevler</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'leaderboard' %}"
+                >🏆 Liderlik Tablosu</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'profile' %}">Profil</a>
+            </li>
+            {% if user.is_superuser %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'admin:index' %}">Admin</a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+              <form
+                method="post"
+                action="{% url 'logout' %}"
+                style="display: inline"
+              >
+                {% csrf_token %}
+                <button
+                  type="submit"
+                  class="nav-link"
+                  style="background: none; border: none"
+                >
+                  Çıkış Yap
+                </button>
+              </form>
+            </li>
+          </ul>
+        </div>
+        <span class="text-white fw-bold"
+          >Toplam Puan: {{ user.profile.points }}</span
+        >
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="leaderboard-container">
+        <!-- Header -->
+        <div class="leaderboard-header">
+          <h1><i class="fas fa-trophy crown"></i>Liderlik Tablosu</h1>
+          <p class="mb-0">
+            En başarılı kullanıcıları keşfedin ve motivasyon alın!
+          </p>
+
+          <div class="user-stats">
+            <div class="row text-center">
+              <div class="col-md-4">
+                <h3><i class="fas fa-medal medal"></i>{{ user_rank }}</h3>
+                <p class="mb-0">Sıralamanız</p>
+              </div>
+              <div class="col-md-4">
+                <h3><i class="fas fa-coins medal"></i>{{ user_points }}</h3>
+                <p class="mb-0">Puanınız</p>
+              </div>
+              <div class="col-md-4">
+                <h3><i class="fas fa-users medal"></i>{{ total_users }}</h3>
+                <p class="mb-0">Toplam Kullanıcı</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <ul
+          class="nav nav-tabs justify-content-center"
+          id="myTab"
+          role="tablist"
+        >
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link active"
+              id="overall-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#overall"
+              type="button"
+              role="tab"
+            >
+              <i class="fas fa-crown me-2"></i>Genel Sıralama
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link"
+              id="weekly-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#weekly"
+              type="button"
+              role="tab"
+            >
+              <i class="fas fa-calendar-week me-2"></i>Bu Hafta
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link"
+              id="monthly-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#monthly"
+              type="button"
+              role="tab"
+            >
+              <i class="fas fa-calendar-alt me-2"></i>Bu Ay
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content" id="myTabContent">
+          <!-- Genel Sıralama -->
+          <div class="tab-pane fade show active" id="overall" role="tabpanel">
+            <h3 class="stats-title text-center mb-4">
+              <i class="fas fa-trophy me-2"></i>En Yüksek Puanlı Kullanıcılar
+            </h3>
+            {% for profile in top_users %}
+            <div
+              class="card rank-card {% if forloop.counter == 1 %}rank-1 {% elif forloop.counter == 2 %}rank-2 {% elif forloop.counter == 3 %}rank-3 {% else %}rank-other{% endif %}"
+            >
+              <div class="card-body py-3">
+                <div class="row align-items-center">
+                  <div class="col-1 text-center">
+                    {% if forloop.counter == 1 %}
+                    <i class="fas fa-crown crown" style="color: #ffd700"></i>
+                    {% elif forloop.counter == 2 %}
+                    <i class="fas fa-medal crown" style="color: #c0c0c0"></i>
+                    {% elif forloop.counter == 3 %}
+                    <i class="fas fa-medal crown" style="color: #cd7f32"></i>
+                    {% else %}
+                    <span class="h4 mb-0">{{ forloop.counter }}</span>
+                    {% endif %}
+                  </div>
+                  <div class="col-1">
+                    <div class="user-avatar">
+                      {{ profile.user.username|first|upper }}
+                    </div>
+                  </div>
+                  <div class="col-8">
+                    <h5 class="card-title mb-0">
+                      {{ profile.user.username }} {% if profile.user == user %}
+                      <span class="badge bg-success ms-2">SİZ</span>
+                      {% endif %}
+                    </h5>
+                    <small class="text-muted"
+                      >{{ forloop.counter }}. sırada</small
+                    >
+                  </div>
+                  <div class="col-2 text-end">
+                    <span class="points-badge">
+                      <i class="fas fa-coins me-1"></i>{{ profile.points }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-5">
+              <i class="fas fa-users fa-3x text-muted mb-3"></i>
+              <h5 class="text-muted">Henüz kullanıcı bulunmuyor</h5>
+            </div>
+            {% endfor %}
+          </div>
+
+          <!-- Haftalık Liderler -->
+          <div class="tab-pane fade" id="weekly" role="tabpanel">
+            <div class="stats-card weekly-card">
+              <h3 class="stats-title text-white">
+                <i class="fas fa-fire me-2"></i>Bu Hafta En Aktif Kullanıcılar
+              </h3>
+              {% for leader in weekly_leaders %}
+              <div
+                class="d-flex justify-content-between align-items-center py-2 border-bottom border-light"
+              >
+                <div class="d-flex align-items-center">
+                  <span class="badge bg-light text-dark me-3"
+                    >{{ forloop.counter }}</span
+                  >
+                  <div
+                    class="user-avatar me-3"
+                    style="width: 40px; height: 40px"
+                  >
+                    {{ leader.user__username|first|upper }}
+                  </div>
+                  <div>
+                    <strong>{{ leader.user__username }}</strong>
+                    <br /><small>{{ leader.user__profile__points }} puan</small>
+                  </div>
+                </div>
+                <span class="badge bg-warning text-dark">
+                  <i class="fas fa-check me-1"></i>{{ leader.completions }}
+                  hedef
+                </span>
+              </div>
+              {% empty %}
+              <p class="text-center text-white-50 mt-3">
+                Bu hafta henüz hedef tamamlayan kullanıcı yok
+              </p>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Aylık Liderler -->
+          <div class="tab-pane fade" id="monthly" role="tabpanel">
+            <div class="stats-card monthly-card">
+              <h3 class="stats-title text-white">
+                <i class="fas fa-calendar-alt me-2"></i>Bu Ay En Aktif
+                Kullanıcılar
+              </h3>
+              {% for leader in monthly_leaders %}
+              <div
+                class="d-flex justify-content-between align-items-center py-2 border-bottom border-light"
+              >
+                <div class="d-flex align-items-center">
+                  <span class="badge bg-light text-dark me-3"
+                    >{{ forloop.counter }}</span
+                  >
+                  <div
+                    class="user-avatar me-3"
+                    style="width: 40px; height: 40px"
+                  >
+                    {{ leader.user__username|first|upper }}
+                  </div>
+                  <div>
+                    <strong>{{ leader.user__username }}</strong>
+                    <br /><small>{{ leader.user__profile__points }} puan</small>
+                  </div>
+                </div>
+                <span class="badge bg-warning text-dark">
+                  <i class="fas fa-check me-1"></i>{{ leader.completions }}
+                  hedef
+                </span>
+              </div>
+              {% empty %}
+              <p class="text-center text-white-50 mt-3">
+                Bu ay henüz hedef tamamlayan kullanıcı yok
+              </p>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

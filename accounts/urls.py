@@ -1,6 +1,5 @@
 from django.urls import path
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
-from django.contrib import admin
 from . import views
 
 urlpatterns = [
@@ -30,14 +29,18 @@ urlpatterns = [
     # Ekstra puan kazanma
     path('add_points/', views.add_points, name='add_points'),
 
-    path('', views.home, name='home'),
-
     path('goal/delete/<int:goal_id>/', views.delete_goal, name='delete_goal'),
-
     path('add_goal_from_task/<int:task_id>/', views.add_goal_from_task, name='add_goal_from_task'),
     path('daily-bonus/', views.daily_bonus_view, name='daily_bonus'),
-    path('admin/', admin.site.urls),
-    path('haftalik-hedefler/', views.challenge_list, name='challenge_list'),
+    path('check-daily-bonus/', views.check_daily_bonus_status, name='check_daily_bonus'),
     
-
+    # Challenge URL'leri
+    path('haftalik-hedefler/', views.challenge_list, name='challenge_list'),
+    path('challenge/join/<int:challenge_id>/', views.join_challenge, name='join_challenge'),
+    
+    # Leaderboard
+    path('leaderboard/', views.leaderboard, name='leaderboard'),
+    
+    # Ana sayfa - En sonda olmalı
+    path('', views.home, name='home'),
 ]
