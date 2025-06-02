@@ -1,5 +1,7 @@
 from collections import defaultdict
 from datetime import date, timedelta
+import random 
+from django.http import JsonResponse
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
@@ -8,10 +10,11 @@ from django.contrib.auth.views import LoginView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django import forms
+from django.views.decorators.http import require_POST
 
 from .models import (
     Profile, Goal, Reward, TaskTemplate,
-    DAY_CHOICES, GoalCompletion, RewardHistory
+    DAY_CHOICES, GoalCompletion, RewardHistory, DailyBonusHistory, Challenge, ChallengeParticipation
 )
 from .forms import ProfileUpdateForm, CustomPasswordChangeForm
 
@@ -48,26 +51,20 @@ def register(request):
 @login_required
 def profile(request):
     user = request.user
-    
-    # Handle week navigation
     try:
         week_offset = int(request.GET.get('week_offset', 0))
     except ValueError:
         week_offset = 0
-    
-    # Calculate current date adjusted by week offset
+
     today = timezone.now().date()
     current_date = today + timedelta(days=7 * week_offset)
-    
-    # Find the most recent Monday (to start week on Monday)
-    days_since_monday = current_date.weekday()  # 0 is Monday, 6 is Sunday
+    days_since_monday = current_date.weekday()
     week_start = current_date - timedelta(days=days_since_monday)
     week_end = week_start + timedelta(days=6)
-    
-    # Generate labels and data for chart (7 days, starting from Monday)
+
     labels = []
     data = []
-    
+
     for i in range(7):
         day = week_start + timedelta(days=i)
         count = GoalCompletion.objects.filter(
@@ -77,37 +74,24 @@ def profile(request):
         ).count()
         labels.append(day.strftime("%d.%m"))
         data.append(count)
-    
-    # Navigation for previous and next week
+
     prev_week = week_offset - 1
     next_week = week_offset + 1
-    
-    # Get the day name for today (if viewing current week)
+
     day_names = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz']
-    if week_offset == 0:
-        today_day_name = day_names[today.weekday()]
-    else:
-        today_day_name = None
-    
-    # Get all user goals
+    today_day_name = day_names[today.weekday()] if week_offset == 0 else None
+
     user_goals = Goal.objects.filter(user=user)
-    
-    # Get all completed goals for the selected week
     completed_this_week = GoalCompletion.objects.filter(
         user=user,
         date__range=[week_start, week_end],
         completed=True
     ).values_list('goal_id', flat=True)
-    
-    # Filter incomplete goals for this week
-    # A goal is incomplete if it's not in the completed_this_week list
-    # and its day_of_week matches a day in the current week
+
     incomplete_goals = []
-    
     for goal in user_goals:
         if goal.id not in completed_this_week and goal.day_of_week:
             day = goal.day_of_week
-            # Make sure day_of_week isn't None and is in our list
             if day in day_names:
                 is_today = (day == today_day_name)
                 incomplete_goals.append({
@@ -118,7 +102,7 @@ def profile(request):
                     'description': goal.description,
                     'is_today': is_today
                 })
-    
+
     return render(request, "accounts/profile.html", {
         "chart_labels": labels,
         "chart_data": data,
@@ -147,10 +131,7 @@ def add_goal(request):
     if request.method == "POST":
         form = GoalForm(request.POST)
         if form.is_valid():
-            # form içindeki day_of_week değerini alalım
             days = request.POST.getlist('day_of_week')
-            
-            # Her gün için ayrı bir Goal nesnesi oluştur
             for day in days:
                 goal = Goal(
                     user=request.user,
@@ -158,10 +139,9 @@ def add_goal(request):
                     description=form.cleaned_data['description'],
                     points=form.cleaned_data['points'],
                     completed=form.cleaned_data['completed'],
-                    day_of_week=day  # Tek bir gün belirt
+                    day_of_week=day
                 )
                 goal.save()
-            
             return redirect('goal_list')
     else:
         form = GoalForm()
@@ -172,7 +152,6 @@ def add_goal(request):
 def goal_list(request):
     user_goals = Goal.objects.filter(user=request.user)
     today = date.today()
-
     completed_today = GoalCompletion.objects.filter(
         user=request.user,
         date=today,
@@ -281,7 +260,18 @@ def edit_profile(request):
 
 @login_required
 def home(request):
+    profile = Profile.objects.get(user=request.user)
+    today = timezone.now().date()
+
+    # Giriş bonusu sadece giriş için geçerli
+    if profile.last_login_bonus != today:
+        profile.points += 5
+        profile.last_login_bonus = today
+        profile.save()
+        messages.success(request, "Bugünkü giriş bonusun (5 puan) hesabına eklendi!")
+
     return render(request, "accounts/home.html")
+
 
 
 @login_required
@@ -313,3 +303,29 @@ def add_goal_from_task(request, task_id):
         'form': form,
         'task': task
     })
+
+
+@require_POST
+@login_required
+def daily_bonus_view(request):
+    today = date.today()
+    profile = Profile.objects.get(user=request.user)
+
+    if profile.daily_bonus_claimed == today:
+        return JsonResponse({'success': False, 'message': '⏳ Bugün zaten çark bonusunu aldınız!'})
+
+    reward = random.choice([5, 10, 15, 20])
+    profile.points += reward
+    profile.daily_bonus_claimed = today
+    profile.save()
+
+    DailyBonusHistory.objects.create(user=request.user, points_earned=reward)
+
+    return JsonResponse({'success': True, 'reward': reward})
+
+def challenge_list(request):
+    today = timezone.now().date()
+    challenges = Challenge.objects.filter(start_date__lte=today, end_date__gte=today, is_active=True)
+    return render(request, 'challenges/challenge_list.html', {'challenges': challenges})
+
+

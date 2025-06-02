@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Günlük Bonus Çarkı</title>
+  <style>
+    body {
+      background: #f4f4f4;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px;
+    }
+
+    .wheel-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: 0 auto;
+    }
+
+    .wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 10px solid #3b5d20;
+      background: conic-gradient(
+        #e1f7d5 0% 25%, 
+        #ffbdbd 25% 50%, 
+        #c9c9ff 50% 75%, 
+        #f1cbff 75% 100%
+      );
+      transition: transform 4s ease-out;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0; 
+      height: 0; 
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 30px solid red;
+    }
+
+    .spin-btn {
+      margin-top: 40px;
+      background-color: #3b5d20;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+
+    .result {
+      margin-top: 30px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Günlük Bonus Çarkı</h1>
+
+  <div class="wheel-container">
+    <div class="pointer"></div>
+    <div class="wheel" id="wheel"></div>
+  </div>
+
+  <button class="spin-btn" onclick="spinWheel()">Çevir</button>
+
+  <div class="result" id="result"></div>
+
+  <script>
+    let isSpinning = false;
+  
+    function spinWheel() {
+      if (isSpinning) return;
+  
+      isSpinning = true;
+      const wheel = document.getElementById('wheel');
+      const resultDiv = document.getElementById('result');
+  
+      fetch("{% url 'daily_bonus' %}")
+        .then(response => response.json())
+        .then(data => {
+          if (!data.success) {
+            resultDiv.innerText = data.message;
+            isSpinning = false;
+            return;
+          }
+  
+          const reward = data.reward;
+          const segments = [5, 10, 15, 20];
+          const index = segments.indexOf(reward);
+          const angle = 360 * 4 + index * 90;
+  
+          wheel.style.transform = `rotate(${angle}deg)`;
+  
+          setTimeout(() => {
+            resultDiv.innerText = `Tebrikler! ${reward} puan kazandınız 🎉`;
+            isSpinning = false;
+          }, 4000);
+        });
+    }
+  </script>  
+</body>
+</html>

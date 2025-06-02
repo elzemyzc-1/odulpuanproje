@@ -1,0 +1,19 @@
+{% extends "accounts/home.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>📅 Haftalık Hedef Paketleri</h2>
+  {% for challenge in challenges %}
+    <div class="card mt-3">
+      <div class="card-body">
+        <h5 class="card-title">{{ challenge.title }}</h5>
+        <p class="card-text">{{ challenge.description }}</p>
+        <p class="card-text text-muted">{{ challenge.start_date }} - {{ challenge.end_date }}</p>
+        <a href="{% url 'join_challenge' challenge.id %}" class="btn btn-success">Katıl</a>
+      </div>
+    </div>
+  {% empty %}
+    <p>Şu anda aktif paket bulunmamaktadır.</p>
+  {% endfor %}
+</div>
+{% endblock %}

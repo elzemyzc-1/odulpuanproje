@@ -1,5 +1,6 @@
 from django.urls import path
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
+from django.contrib import admin
 from . import views
 
 urlpatterns = [
@@ -34,4 +35,9 @@ urlpatterns = [
     path('goal/delete/<int:goal_id>/', views.delete_goal, name='delete_goal'),
 
     path('add_goal_from_task/<int:task_id>/', views.add_goal_from_task, name='add_goal_from_task'),
+    path('daily-bonus/', views.daily_bonus_view, name='daily_bonus'),
+    path('admin/', admin.site.urls),
+    path('haftalik-hedefler/', views.challenge_list, name='challenge_list'),
+    
+
 ]
