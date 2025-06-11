@@ -33,6 +33,8 @@ class Goal(models.Model):
     day_of_week = models.CharField(max_length=255, blank=True, null=True)
     start_date = models.DateField(blank=True, null=True)
     end_date = models.DateField(blank=True, null=True)
+    is_shared = models.BooleanField(default=False)
+
 
     def get_day_list(self):
         # Artık her hedef tek bir gün tutuyor, listeye çevirip döndür
@@ -71,9 +73,15 @@ class RewardHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     reward = models.ForeignKey(Reward, on_delete=models.CASCADE)
     redeemed_at = models.DateTimeField(auto_now_add=True)
+    coupon_code = models.CharField(max_length=20, blank=True, null=True)  # 🎟️ Kişiye özel kupon
+
+    class Meta:
+        unique_together = ('user', 'reward')
 
     def __str__(self):
         return f"{self.user.username} - {self.reward.name} - {self.redeemed_at.strftime('%Y-%m-%d %H:%M')}"
+
+
 
 
 class DailyBonusHistory(models.Model):
@@ -125,3 +133,13 @@ class ChallengeParticipation(models.Model):
         unique_together = ('user', 'challenge')
 
 
+
+class Friend(models.Model):
+    user = models.ForeignKey(User, related_name='owner', on_delete=models.CASCADE)
+    friend = models.ForeignKey(User, related_name='friend_of', on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user', 'friend')  # Aynı kişiyi birden çok kez ekleyemesin
+
+    def __str__(self):
+        return f"{self.user.username} -> {self.friend.username}"

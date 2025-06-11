@@ -207,62 +207,35 @@
   </head>
 
   <body>
+
     <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-custom">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'home' %}"
-          >Kişisel Gelişim Ödül Puan Sistemi</a
-        >
-        <div>
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0 d-flex flex-row gap-3">
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'goal_list' %}">Hedeflerim</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'add_goal' %}">Hedef Ekle</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'reward_list' %}">Ödül Al</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'task_pool' %}">Görevler</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'leaderboard' %}"
-                >🏆 Liderlik Tablosu</a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'profile' %}">Profil</a>
-            </li>
+<nav class="navbar navbar-expand-lg navbar-custom">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{% url 'home' %}">Kişisel Gelişim Ödül Puan Sistemi</a>
+      <div>
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0 d-flex flex-row gap-3">
+            <li class="nav-item"><a class="nav-link" href="{% url 'goal_list' %}">Hedeflerim</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'add_goal' %}">Hedef Ekle</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'reward_list' %}">Ödül Al</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'my_rewards' %}">🎁 Ödüllerim</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'task_pool' %}">Görevler</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'friend_list' %}">Arkadaşlar</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">Profil</a></li>
             {% if user.is_superuser %}
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'admin:index' %}">Admin</a>
-            </li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'admin:index' %}">Admin</a></li>
             {% endif %}
             <li class="nav-item">
-              <form
-                method="post"
-                action="{% url 'logout' %}"
-                style="display: inline"
-              >
+              <form method="post" action="{% url 'logout' %}" style="display: inline">
                 {% csrf_token %}
-                <button
-                  type="submit"
-                  class="nav-link"
-                  style="background: none; border: none"
-                >
-                  Çıkış Yap
-                </button>
+                <button type="submit" class="nav-link" style="background: none; border: none">Çıkış Yap</button>
               </form>
             </li>
-          </ul>
-        </div>
-        <span class="text-white fw-bold"
-          >Toplam Puan: {{ user.profile.points }}</span
-        >
+          </ul>  
       </div>
-    </nav>
+      <span class="text-white fw-bold">Toplam Puan: {{ user.profile.points }}</span>
+    </div>
+  </nav>
+  
 
     {% if messages %}
     <div class="container mt-4">
@@ -276,30 +249,67 @@
       <h1>Hoş Geldin, {{ user.username }}!</h1>
       <p>Kişisel gelişim yolculuğuna başla!</p>
       <img
-        src="{% static 'images/homepage.png' %}"
+        src="{% static 'images/personal.png' %}"
         alt="Kişisel Gelişim Ödül Puan Sistemi"
       />
     </div>
 
     <div class="content">
-      <h2>Bugün yeni bir hedef için mükemmel bir gün!</h2>
-      <p>Hedefler koy, gelişimini takip et ve ödüller kazan.</p>
-      <a
-        href="{% url 'goal_list' %}"
-        class="btn mt-3 me-2"
-        style="background-color: #3b5d20; color: white; font-weight: 500"
-      >
-        🎯 Hedeflerimi Gör
-      </a>
-      <a
-        href="{% url 'challenge_list' %}"
-        class="btn mt-3"
-        style="background-color: #3b5d20; color: white; font-weight: 500"
-      >
-        📅 Hedef Paketleri
-      </a>
-    </div>
+        <h2>Bugün yeni bir hedef için mükemmel bir gün!</h2>
+        <p>Hedefler koy, gelişimini takip et ve ödüller kazan.</p>
+        <a
+    href="{% url 'goal_list' %}"
+    class="btn me-2 mb-2"
+    style="background-color: #3b5d20; color: white; font-weight: 500"
+  >
+    🎯 Hedeflerimi Gör
+  </a>
+  <a
+    href="{% url 'challenge_list' %}"
+    class="btn me-2 mb-2"
+    style="background-color: #3b5d20; color: white; font-weight: 500"
+  >
+    📦 Hedef Paketleri
+  </a>
+  <a
+    href="{% url 'users_list' %}"
+    class="btn me-2 mb-2"
+    style="background-color: #3b5d20; color: white; font-weight: 500"
+  >
+    👥 Arkadaş Ekle
+  </a>
+  <a
+    href="{% url 'shared_goals' %}"
+    class="btn mb-2"
+    style="background-color: #3b5d20; color: white; font-weight: 500"
+  >
+    📤 Paylaşılan Hedefler
+  </a>
+      </div>
 
+      <div class="content mt-4">
+        {% for leader in weekly_leaders|slice:":3" %}
+          <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-2">
+            <div class="d-flex align-items-center">
+              <span class="badge bg-dark me-3">{{ forloop.counter }}</span>
+              <strong>{{ leader.user__username }}</strong>
+            </div>
+            <span class="badge bg-success">
+              <i class="fas fa-check me-1"></i>{{ leader.completions }} hedef
+            </span>
+          </div>
+        {% empty %}
+        {% endfor %}
+      
+        <a
+          href="{% url 'leaderboard' %}"
+          class="btn mt-3"
+          style="background-color: #3b5d20; color: white; font-weight: 500"
+        >
+          🏆 Liderlik Tablosunu Gör
+        </a>
+      </div>
+      
     <!-- GÜNLÜK BONUS BUTONU -->
     <button onclick="openWheelModal()" class="bonus-btn">
       🎁 Günlük Bonus Çarkı
@@ -484,7 +494,7 @@
                 document.getElementById(
                   "bonus-result"
                 ).innerHTML = `🎉 Tebrikler! <br><strong>${wonPoints} puan</strong> kazandınız!`;
-                setTimeout(() => location.reload(), 3000);
+                setTimeout(() => location.reload(), 4000);
               } else {
                 closeWheelModal();
                 Swal.fire("⏳", data.message, "info");

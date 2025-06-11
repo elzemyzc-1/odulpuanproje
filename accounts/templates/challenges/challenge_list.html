@@ -135,7 +135,6 @@
       <!-- Debug Bilgileri -->
       {% if user.is_superuser %}
       <div class="alert alert-info mb-4">
-        <strong>🔧 Debug Bilgileri (Sadece Admin Görür):</strong><br />
         📊 Toplam Challenge: {{ total_challenges }}<br />
         ✅ Aktif Challenge: {{ active_challenges }}<br />
         📅 Bugünkü Tarih Filtreli: {{ date_filtered_count }}<br />
@@ -171,7 +170,6 @@
           <small>Admin panelinden yeni hedef paketleri ekleyebilirsiniz.</small>
         </p>
         {% if user.is_superuser %}
-        <p><small>🔧 Yukarıdaki debug bilgilerini kontrol edin.</small></p>
         {% endif %}
       </div>
       {% endif %}

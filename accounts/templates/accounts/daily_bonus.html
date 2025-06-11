@@ -78,34 +78,57 @@
     let isSpinning = false;
   
     function spinWheel() {
-      if (isSpinning) return;
-  
-      isSpinning = true;
-      const wheel = document.getElementById('wheel');
-      const resultDiv = document.getElementById('result');
-  
-      fetch("{% url 'daily_bonus' %}")
-        .then(response => response.json())
-        .then(data => {
-          if (!data.success) {
-            resultDiv.innerText = data.message;
-            isSpinning = false;
-            return;
-          }
-  
-          const reward = data.reward;
-          const segments = [5, 10, 15, 20];
-          const index = segments.indexOf(reward);
-          const angle = 360 * 4 + index * 90;
-  
-          wheel.style.transform = `rotate(${angle}deg)`;
-  
-          setTimeout(() => {
-            resultDiv.innerText = `Tebrikler! ${reward} puan kazandınız 🎉`;
-            isSpinning = false;
-          }, 4000);
-        });
+  if (isSpinning) return;
+
+  isSpinning = true;
+  const wheel = document.getElementById('wheel');
+  const resultDiv = document.getElementById('result');
+
+  const segments = [100, 200, 300, 400, 500];
+  const index = segments.indexOf(reward);
+  const reward = rewards[index];
+
+  const angle = 360 * 5 + index * 72;
+
+  wheel.style.transform = `rotate(${angle}deg)`;
+
+  // Backend'e bu reward değerini gönderiyoruz:
+  fetch("{% url 'daily_bonus' %}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCookie("csrftoken")  // CSRF koruması için
+    },
+    body: JSON.stringify({ points: reward })
+  })
+    .then(response => response.json())
+    .then(data => {
+      setTimeout(() => {
+        if (data.success) {
+          resultDiv.innerText = `🎉 Tebrikler! ${data.reward} puan kazandınız!`;
+        } else {
+          resultDiv.innerText = data.message;
+        }
+        isSpinning = false;
+      }, 4000);
+    });
+
+  // CSRF token alma fonksiyonu (varsa eklemen gerekebilir)
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
     }
+    return cookieValue;
+  }
+}
   </script>  
 </body>
 </html>

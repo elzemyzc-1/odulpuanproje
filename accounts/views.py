@@ -1,6 +1,7 @@
 from collections import defaultdict
 from datetime import date, timedelta
 import random 
+import string
 from django.http import JsonResponse
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
@@ -13,10 +14,12 @@ from django import forms
 from django.views.decorators.http import require_POST
 from django.db import models
 from dateutil.relativedelta import relativedelta
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
 
 from .models import (
     Profile, Goal, Reward, TaskTemplate,
-    DAY_CHOICES, GoalCompletion, RewardHistory, DailyBonusHistory, Challenge, ChallengeParticipation
+    DAY_CHOICES, GoalCompletion, RewardHistory, DailyBonusHistory, Challenge, ChallengeParticipation, Friend
 )
 from .forms import ProfileUpdateForm, CustomPasswordChangeForm
 
@@ -203,40 +206,65 @@ def reward_list(request):
 
 @login_required
 def redeem_reward(request, reward_id):
-    reward = Reward.objects.get(id=reward_id)
-    user_profile = Profile.objects.get(user=request.user)
+    reward = get_object_or_404(Reward, id=reward_id)
+    profile = request.user.profile
 
-    if request.method == "POST":
-        if user_profile.points >= reward.points_required:
-            user_profile.points -= reward.points_required
-            user_profile.save()
-            RewardHistory.objects.create(user=request.user, reward=reward)
-            messages.success(request, "Ödülü başarıyla aldın!")
-        else:
-            messages.error(request, "Yetersiz puan!")
+    if RewardHistory.objects.filter(user=request.user, reward=reward).exists():
+        messages.warning(request, "Bu ödülü zaten aldınız.")
         return redirect('reward_list')
 
-    return render(request, 'accounts/confirm_redeem.html', {'reward': reward})
+    if profile.points >= reward.points_required:
+        profile.points -= reward.points_required
+        profile.save()
+
+        unique_code = generate_coupon_code()
+        RewardHistory.objects.create(user=request.user, reward=reward, coupon_code=unique_code)
+
+        messages.success(request, f"{reward.name} ödülünü başarıyla aldınız!")
+    else:
+        messages.error(request, "Yeterli puanınız yok.")
+
+    return redirect('reward_list')
+
+
 
 
 @login_required
 def task_pool(request):
     tasks = TaskTemplate.objects.all()
-    return render(request, 'accounts/task_pool.html', {'tasks': tasks})
+    from .models import DAY_CHOICES  # gün seçeneklerini ekliyoruz
+    return render(request, 'accounts/task_pool.html', {
+        'tasks': tasks,
+        'DAY_CHOICES': DAY_CHOICES
+    })
 
 
 @login_required
 def add_task_as_goal(request, task_id):
-    task = TaskTemplate.objects.get(id=task_id)
-    Goal.objects.create(
-        user=request.user,
-        title=task.title,
-        description=task.description,
-        points=task.points,
-        completed=False,
-        day_of_week="Pzt,Sal,Çar,Per,Cum"
-    )
-    return redirect('goal_list')
+    task = get_object_or_404(TaskTemplate, id=task_id)
+
+    if request.method == "POST":
+        selected_days = request.POST.getlist("day_of_week")
+
+        if not selected_days:
+            messages.error(request, "Lütfen en az bir gün seçin.")
+            return redirect('task_pool')
+
+        for day in selected_days:
+            Goal.objects.create(
+                user=request.user,
+                title=task.title,
+                description=task.description,
+                points=task.points,
+                completed=False,
+                day_of_week=day
+            )
+
+        messages.success(request, "Görev başarıyla seçtiğiniz günlere eklendi.")
+        return redirect('task_pool')
+
+    return redirect('task_pool')
+
 
 
 @login_required
@@ -317,11 +345,10 @@ def daily_bonus_view(request):
     if profile.daily_bonus_claimed == today:
         return JsonResponse({'success': False, 'message': '⏳ Bugün zaten çark bonusunu aldınız!'})
 
-    # Frontend'den gelen puan değerini al
+    # Gelen veriyi oku
     try:
         data = json.loads(request.body)
         points = data.get('points', 0)
-        # Geçerli puan değerlerini kontrol et
         if points not in [100, 200, 300, 400, 500]:
             points = random.choice([100, 200, 300, 400, 500])
     except:
@@ -330,10 +357,20 @@ def daily_bonus_view(request):
     profile.points += points
     profile.daily_bonus_claimed = today
     profile.save()
-
     DailyBonusHistory.objects.create(user=request.user, points_earned=points)
 
-    return JsonResponse({'success': True, 'reward': points})
+    # Açılar — çarkın görsel sırasına göre:
+    angle_map = {
+        500: 0,
+        100: 72,
+        200: 144,
+        300: 216,
+        400: 288
+    }
+
+    return JsonResponse({'success': True, 'reward': points, 'angle': angle_map[points]})
+
+
 
 @login_required
 def check_daily_bonus_status(request):
@@ -420,8 +457,14 @@ def join_challenge(request, challenge_id):
 @login_required
 def leaderboard(request):
     """Leaderboard sayfası - kullanıcıları puanlarına göre sıralar"""
-    # En yüksek puanlı kullanıcıları getir (top 50)
-    top_users = Profile.objects.select_related('user').order_by('-points')[:50]
+    friend_ids = Friend.objects.filter(user=request.user).values_list('friend_id', flat=True)
+    visible_user_ids = list(friend_ids) + [request.user.id]
+
+
+    top_users = Profile.objects.select_related('user') \
+    .filter(user__id__in=visible_user_ids) \
+    .order_by('-points')
+
     
     # Mevcut kullanıcının sıralamasını bul
     user_profile = Profile.objects.get(user=request.user)
@@ -434,21 +477,25 @@ def leaderboard(request):
     
     weekly_completions = GoalCompletion.objects.filter(
         date__range=[week_start, week_end],
-        completed=True
+        completed=True,
+        user__id__in=visible_user_ids  # SADECE arkadaşlar ve kendin
     ).values('user__username', 'user__profile__points').annotate(
         completions=models.Count('id')
     ).order_by('-completions')[:10]
+
     
     # Aylık istatistikler
     month_start = today.replace(day=1)
     month_end = month_start + relativedelta(months=1) - timedelta(days=1)
-    
+
     monthly_completions = GoalCompletion.objects.filter(
         date__range=[month_start, month_end],
-        completed=True
+        completed=True,
+        user__id__in=visible_user_ids  # SADECE arkadaşlar ve kendin
     ).values('user__username', 'user__profile__points').annotate(
         completions=models.Count('id')
     ).order_by('-completions')[:10]
+
     
     context = {
         'top_users': top_users,
@@ -461,4 +508,99 @@ def leaderboard(request):
     
     return render(request, 'accounts/leaderboard.html', context)
 
+from .models import Goal
+
+@login_required
+def shared_goals(request):
+    print("✅ shared_goals VIEW çalıştı!")
+    goals = Goal.objects.filter(is_shared=True).exclude(user=request.user)
+    return render(request, 'accounts/shared_goals.html', {'goals': goals})
+
+
+@require_POST
+def copy_goal(request, goal_id):
+    original_goal = get_object_or_404(Goal, id=goal_id, is_shared=True)
+
+    # Yeni kullanıcıya özel kopyasını oluştur
+    Goal.objects.create(
+        user=request.user,
+        title=original_goal.title,
+        description=original_goal.description,
+        points=original_goal.points,
+        completed=False,
+        is_shared=False  # kopya paylaşılan olarak gelmesin
+    )
+
+    messages.success(request, "Hedef listenize eklendi.")
+    return redirect('shared_goals')
+
+def password_reset_view(request):
+    context = {}
+
+    if request.method == "POST":
+        username = request.POST.get("username")
+        new_password = request.POST.get("new_password")
+
+        try:
+            user = User.objects.get(username=username)
+            user.password = make_password(new_password)
+            user.save()
+            context["success"] = "Şifre başarıyla güncellendi."
+        except User.DoesNotExist:
+            context["error"] = "Kullanıcı bulunamadı."
+
+    return render(request, "accounts/password_reset.html", context)
+
+
+def redeem_reward(request, reward_id):
+    reward = get_object_or_404(Reward, id=reward_id)
+    profile = request.user.profile  # Kullanıcı profiline erişim
+
+    # Ödül daha önce alındı mı?
+    if RewardHistory.objects.filter(user=request.user, reward=reward).exists():
+        messages.warning(request, "Bu ödülü zaten aldınız.")
+        return redirect('reward_list')  # Ödül sayfasının URL adı
+
+    if profile.points >= reward.points_required:
+        # Puanı düşür
+        profile.points -= reward.points_required
+        profile.save()
+
+        # Ödül geçmişine kaydet
+        RewardHistory.objects.create(user=request.user, reward=reward)
+        messages.success(request, f"{reward.name} ödülünü başarıyla aldınız!")
+    else:
+        messages.error(request, "Yeterli puanınız yok.")
+
+    return redirect('reward_list')
+
+
+@login_required
+def my_rewards(request):
+    user_rewards = RewardHistory.objects.filter(user=request.user).select_related('reward')
+    return render(request, 'accounts/my_rewards.html', {'user_rewards': user_rewards})
+
+
+@login_required
+def users_list(request):
+    all_users = User.objects.exclude(id=request.user.id)
+    existing_friends = Friend.objects.filter(user=request.user).values_list('friend_id', flat=True)
+    return render(request, 'accounts/users_list.html', {
+        'all_users': all_users,
+        'existing_friends': existing_friends,
+    })
+
+
+@login_required
+def add_friend(request, user_id):
+    friend = get_object_or_404(User, id=user_id)
+    if friend != request.user:
+        Friend.objects.get_or_create(user=request.user, friend=friend)
+    return redirect('users_list') 
+
+@login_required
+def friend_list(request):
+    friend_ids = Friend.objects.filter(user=request.user).values_list('friend_id', flat=True)
+    friends = User.objects.filter(id__in=friend_ids)
+    return render(request, 'accounts/friend_list.html', {'friends': friends})
 

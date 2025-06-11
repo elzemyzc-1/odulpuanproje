@@ -1,10 +1,12 @@
-from django.urls import path
-from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
 from . import views
+from django.urls import path
+from django.contrib.auth.views import PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
+from .views import password_reset_view
+
+
 
 urlpatterns = [
     # Şifre sıfırlama işlemleri
-    path('password_reset/', PasswordResetView.as_view(), name='password_reset'),
     path('password_reset/done/', PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset/done/', PasswordResetCompleteView.as_view(), name='password_reset_complete'),
@@ -43,4 +45,13 @@ urlpatterns = [
     
     # Ana sayfa - En sonda olmalı
     path('', views.home, name='home'),
+
+    path('paylasilan-hedefler/', views.shared_goals, name='shared_goals'),
+    path('hedef-kopyala/<int:goal_id>/', views.copy_goal, name='copy_goal'),
+    path('password_reset/', password_reset_view, name='password_reset'),
+    path('my-rewards/', views.my_rewards, name='my_rewards'),
+    path('users/', views.users_list, name='users_list'),
+    path('add-friend/<int:user_id>/', views.add_friend, name='add_friend'),
+    path('friends/', views.friend_list, name='friend_list'),
+
 ]

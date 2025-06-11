@@ -80,6 +80,12 @@
             {{ form.password }}
         </div>
         <button type="submit" class="btn">Giriş Yap</button>
+        <div class="text-center mt-3">
+            <a href="{% url 'password_reset' %}" style="color: #3b5d20; text-decoration: none;">
+              Şifremi unuttum
+            </a>
+          </div>
+          
     </form>
 
     <a href="{% url 'register' %}" class="register-link">Hesabın yok mu? Kayıt Ol</a>

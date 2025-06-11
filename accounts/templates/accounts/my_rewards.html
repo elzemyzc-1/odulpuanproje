@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Aldığınız Ödüller</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background-color: #f4f4f4;
+    }
+    .navbar-custom {
+      background-color: #3b5d20;
+    }
+    .navbar-custom .nav-link,
+    .navbar-custom .navbar-brand {
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-custom">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{% url 'home' %}">Kişisel Gelişim Ödül Puan Sistemi</a>
+    <div>
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0 d-flex flex-row gap-3">
+        <li class="nav-item"><a class="nav-link" href="{% url 'goal_list' %}">Hedeflerim</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'add_goal' %}">Hedef Ekle</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'reward_list' %}">Ödül Al</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'my_rewards' %}">🎁 Ödüllerim</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'task_pool' %}">Görevler</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'leaderboard' %}">🏆 Liderlik Tablosu</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">Profil</a></li>
+      </ul>
+    </div>
+    <span class="text-white fw-bold">Toplam Puan: {{ user.profile.points }}</span>
+  </div>
+</nav>
+
+<div class="container mt-5">
+  <h2 class="mb-4">🎁 Aldığınız Ödüller</h2>
+
+  {% if user_rewards %}
+    <div class="row">
+      {% for item in user_rewards %}
+        <div class="col-md-4 mb-4">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">{{ item.reward.name }}</h5>
+              <p class="card-text">{{ item.reward.description }}</p>
+              <p><strong>🪙 {{ item.reward.points_required }} puan</strong></p>
+              <p class="text-muted" style="font-size: 0.9em;">Alınma Tarihi: {{ item.redeemed_at|date:"d.m.Y H:i" }}</p>
+              {% if item.coupon_code %}
+              <p><strong>Kupon Kodu:</strong> <code>{{ item.coupon_code }}</code></p>
+            {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info">Henüz hiç ödül almadınız.</div>
+  {% endif %}
+
+  <a href="{% url 'reward_list' %}" class="btn mt-3" style="background-color: #3b5d20; color: white; font-weight: 500;">
+    ← Ödül Al Sayfasına Dön
+  </a>
+</div>
+
+</body>
+</html>
